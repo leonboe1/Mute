@@ -197,7 +197,7 @@ public class Mute: NSObject {
         self.isPlaying = false
 
         let elapsed = Date.timeIntervalSinceReferenceDate - self.interval
-        let isMute = elapsed < 0.1
+        let isMute = !(elapsed > 0.1 && elapsed < 0.2)
 
         if self.isMute != isMute || self.alwaysNotify {
             self.isMute = isMute
