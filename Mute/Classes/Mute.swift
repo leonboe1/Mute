@@ -63,6 +63,7 @@ public class Mute: NSObject {
 
     /// Time difference between start and finish of mute sound
     private var interval: TimeInterval = 0
+    private let muteCheckQueue = DispatchQueue(label: "com.party.muteCheckQueue")
 
     // MARK: Resources
 
@@ -169,15 +170,17 @@ public class Mute: NSObject {
 
         self.isScheduled = true
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + self.checkInterval) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + self.checkInterval) { [weak self] in
+            guard let self = self else { return }
             self.isScheduled = false
 
             /// Don't play if we're paused
             if self.isPaused {
                 return
             }
-
-            self.playSound()
+            self.muteCheckQueue.async {
+                self.playSound()
+            }
         }
     }
 
