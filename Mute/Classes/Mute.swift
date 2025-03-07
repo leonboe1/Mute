@@ -148,12 +148,12 @@ public class Mute: NSObject {
 
     /// Selector called when app enters background
     @objc private func didEnterBackground(_ sender: Any) {
-        self.isPaused = true
+        self.checkInterval = 20.0
     }
 
     /// Selector called when app will enter foreground
     @objc private func willEnterForeground(_ sender: Any) {
-        self.isPaused = false
+        self.checkInterval = 1.0
     }
 
     // MARK: Methods
