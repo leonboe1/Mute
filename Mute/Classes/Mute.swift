@@ -154,6 +154,7 @@ public class Mute: NSObject {
     /// Selector called when app will enter foreground
     @objc private func willEnterForeground(_ sender: Any) {
         self.checkInterval = 1.0
+        self.check()
     }
 
     // MARK: Methods
