@@ -37,7 +37,7 @@ public class Mute: NSObject {
     public private(set) var isMute = false
 
     /// Sound is scheduled
-    private var isScheduled = false
+    private var nextScheduledCheck: DispatchWorkItem? = nil
 
     /// State of detection - paused when in background
     public var isPaused = false {
@@ -154,6 +154,8 @@ public class Mute: NSObject {
     /// Selector called when app will enter foreground
     @objc private func willEnterForeground(_ sender: Any) {
         self.checkInterval = 1.0
+        nextScheduledCheck?.cancel()
+        nextScheduledCheck = nil
         self.check()
     }
 
@@ -167,13 +169,12 @@ public class Mute: NSObject {
     /// Schedules mute sound to be played at `checkInterval`
     private func schedulePlaySound() {
         /// Don't schedule a new one if we already have one queued
-        if self.isScheduled { return }
+        if self.nextScheduledCheck != nil { return }
 
-        self.isScheduled = true
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + self.checkInterval) { [weak self] in
+        nextScheduledCheck = DispatchWorkItem(block: { [weak self] in
+            
             guard let self = self else { return }
-            self.isScheduled = false
+            self.nextScheduledCheck = nil
 
             /// Don't play if we're paused
             if self.isPaused {
@@ -182,7 +183,10 @@ public class Mute: NSObject {
             self.muteCheckQueue.async {
                 self.playSound()
             }
-        }
+        })
+        
+        guard let nextScheduledCheck = nextScheduledCheck else { return }
+        self.muteCheckQueue.asyncAfter(deadline: .now() + self.checkInterval, execute: nextScheduledCheck)
     }
 
     /// If not paused, playes mute sound
